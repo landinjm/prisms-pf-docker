@@ -14,6 +14,8 @@ RUN cd $HOME && \
     git clone https://github.com/prisms-center/phaseField.git && \
     cd phaseField && \
     git checkout $VER && \
+    chown -R $USER:$USER . && \
+    chmod -R 755 . && \
     cmake . && \
     make -j $NJOBS
 
