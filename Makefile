@@ -6,60 +6,40 @@ PLATFORM=linux/amd64
 ARCH=amd64
 endif
 
-DOCKER_BUILD=docker buildx build --push --platform $(PLATFORM) --output type=registry
+NJOBS ?= 0
+ifeq ($(NJOBS),0)
+NJOBS=$(shell nproc)
+endif
 
-dependencies-jammy:
-	$(DOCKER_BUILD) \
-		-t landinjm/prisms-pf-dependencies:jammy-${ARCH} \
-		--build-arg IMG=jammy \
-		--build-arg NJOBS=8 \
-        ./dependencies
+DOCKER_BUILD=docker buildx build
 
-dependencies-noble:
+# Build amd64 variant
+dependencies-amd64:
 	$(DOCKER_BUILD) \
-		-t landinjm/prisms-pf-dependencies:noble-${ARCH} \
-		--build-arg IMG=noble \
-		--build-arg NJOBS=8 \
+		--platform linux/amd64 \
+		-t landinjm/prisms-pf-dependencies:alpine-amd64 \
+		--build-arg NJOBS=${NJOBS} \
 		./dependencies
 
-dependencies-%-merge::
-	docker buildx imagetools create -t landinjm/prisms-pf-dependencies:$* \
-		landinjm/prisms-pf-dependencies:$*-arm64 \
-		landinjm/prisms-pf-dependencies:$*-amd64
-
-%-merge::
-	docker buildx imagetools create -t landinjm/prisms-pf:$* \
-		landinjm/prisms-pf:$*-arm64 \
-		landinjm/prisms-pf:$*-amd64
-
-devel-noble:
+# Build arm64 variant
+dependencies-arm64:
 	$(DOCKER_BUILD) \
-		-t landinjm/prisms-pf:devel-noble-${ARCH} \
-		--build-arg IMG=noble \
-		--build-arg ARCH=${ARCH} \
-		--build-arg VER=devel \
-		--build-arg NJOBS=8 \
-		./prisms-pf
+		--platform linux/arm64 \
+		-t landinjm/prisms-pf-dependencies:alpine-arm64 \
+		--build-arg NJOBS=${NJOBS} \
+		./dependencies
 
-devel-jammy:
-	$(DOCKER_BUILD) \
-		-t landinjm/prisms-pf:devel-jammy-${ARCH} \
-		--build-arg IMG=jammy \
-		--build-arg ARCH=${ARCH} \
-		--build-arg VER=devel \
-		--build-arg NJOBS=8 \
-		./prisms-pf
+dependencies-merge::
+	docker buildx imagetools create -t landinjm/prisms-pf-dependencies:alpine \
+		landinjm/prisms-pf-dependencies:alpine-arm64 \
+		landinjm/prisms-pf-dependencies:alpine-amd64
 
-noble: dependencies-noble devel-noble 
+dependencies: dependencies-amd64 dependencies-arm64 dependencies-merge
 
-jammy: dependencies-jammy devel-jammy
-
-all: noble jammy
+all: dependencies
 
 .PHONY: all \
-	dependencies-jammy \
-	dependencies-noble \
-	dependencies-%-merge \
-	%-merge \
-	devel-jammy \
-	devel-noble
+	dependencies \
+	dependencies-amd64 \
+	dependencies-arm64 \
+	dependencies-merge
