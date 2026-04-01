@@ -19,6 +19,7 @@ RUN apk add --no-cache \
         git \
         gmp-dev \
         ninja \
+        mold \
         boost-dev \
         openmpi-dev \
         lapack-dev \
@@ -28,6 +29,9 @@ RUN apk add --no-cache \
         bash \
         openssh \
         sudo \
+        doxygen \
+        graphviz \
+        ttf-dejavu \
     && \
     # Install p4est
     wget https://p4est.github.io/release/p4est-2.8.7.tar.gz && \
@@ -49,6 +53,7 @@ RUN apk add --no-cache \
         -DDEAL_II_EARLY_DEPRECATIONS=ON \
         -DDEAL_II_ALLOW_AUTODETECTION=OFF \
         -DDEAL_II_COMPONENT_PYTHON_BINDINGS=OFF \
+        -DDEAL_II_COMPONENT_EXAMPLES=OFF \
         -DDEAL_II_WITH_64BIT_INDICES=OFF \
         -DDEAL_II_WITH_ADOLC=OFF \
         -DDEAL_II_WITH_ARBORX=OFF \
