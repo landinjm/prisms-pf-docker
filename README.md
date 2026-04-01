@@ -1,2 +1,2 @@
-### Docker files to create PRISMS-PF Docker images
+### Docker files to create Pagoma Docker images
 
