@@ -15,6 +15,8 @@ ENV PATH="/usr/lib/openmpi/bin:${PATH}"
 # Install build dependencies as virtual package and do all builds in one layer
 RUN apk add --no-cache \
         build-base \
+        musl-dev \
+        linux-headers \
         cmake \
         git \
         gmp-dev \
