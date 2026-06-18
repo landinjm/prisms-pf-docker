@@ -1,6 +1,6 @@
 FROM alpine:3.22.1
 
-ARG USER=pagoma          # Default user
+ARG USER=prisms-pf       # Default user
 ARG UID=1234             # Default user ID
 ARG NJOBS=0              # Jobs used for building. Default: Use all available jobs.
 ARG ALL_DEPENDENCIES=OFF # Whether to build all dependencies or not. Default: Build minimal dependencies
