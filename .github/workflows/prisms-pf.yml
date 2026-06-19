@@ -68,6 +68,6 @@ jobs:
       - name: Merge and push images
         run: |
           docker buildx imagetools create \
-            -t landinjm/prisms-pf:alpine-minimal \
-            landinjm/prisms-pf:alpine-minimal-arm64 \
-            landinjm/prisms-pf:alpine-minimal-amd64
+            -t landinjm/prisms-pf:alpine-master-minimal \
+            landinjm/prisms-pf:alpine-master-minimal-arm64 \
+            landinjm/prisms-pf:alpine-master-minimal-amd64
