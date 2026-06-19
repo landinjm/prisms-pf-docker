@@ -1,0 +1,73 @@
+name: Docker-PRISMS-PF
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }} image
+    runs-on: ${{ matrix.runs-on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            architecture: amd64
+            runs-on: ubuntu-24.04
+          - platform: linux/arm64
+            architecture: arm64
+            runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7 
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Get number of CPU cores
+        id: njobs
+        run: echo "njobs=$(nproc)" >> $GITHUB_OUTPUT
+
+      - name: Build and push master-minimal (${{ matrix.architecture }})
+        uses: docker/build-push-action@v7
+        with:
+          context: ./prisms-pf
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: landinjm/prisms-pf:alpine-master-minimal-${{ matrix.architecture }}
+          build-args: |
+            NJOBS=${{ steps.njobs.outputs.njobs }}
+            ALL_DEPENDENCIES=OFF
+            IMG=alpine-minimal-${{ matrix.architecture }}
+          cache-from: type=gha,scope=${{ matrix.architecture }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.architecture }}
+
+  merge:
+    name: Merge images
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Merge and push images
+        run: |
+          docker buildx imagetools create \
+            -t landinjm/prisms-pf:alpine-minimal \
+            landinjm/prisms-pf:alpine-minimal-arm64 \
+            landinjm/prisms-pf:alpine-minimal-amd64
