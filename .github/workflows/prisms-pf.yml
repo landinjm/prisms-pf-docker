@@ -1,7 +1,11 @@
 name: Docker-PRISMS-PF
 
 on:
+  repository_dispatch:
   workflow_dispatch:
+  schedule:
+    # Run every Monday at 8am UTC-5
+    - cron: "0 13 * * 1"
 
 jobs:
   build:
